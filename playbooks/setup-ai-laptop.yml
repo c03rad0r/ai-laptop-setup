@@ -79,3 +79,9 @@
         name: code
         state: present
         update_cache: yes
+
+    - name: Install ngit
+      become_user: "{{ user_name }}"
+      ansible.builtin.shell:
+        cmd: curl -Ls https://ngit.dev/install.sh | bash
+        creates: "/home/{{ user_name }}/.ngit/bin/ngit"
