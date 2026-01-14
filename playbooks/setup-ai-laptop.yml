@@ -2,7 +2,7 @@
   hosts: localhost
   become: yes
   vars:
-    user_name: "{{ ansible_user_id }}"
+    user_name: "{{ lookup('env', 'SUDO_USER') or ansible_user_id }}"
     
   tasks:
     - name: Update apt cache
