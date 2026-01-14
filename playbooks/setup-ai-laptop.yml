@@ -121,9 +121,33 @@
         group: root
         mode: '0644'
 
-    - name: Enable and start rana service
+    - name: Copy manage-rana-service.sh script
+      ansible.builtin.copy:
+        src: ../roles/common-tools/files/manage-rana-service.sh
+        dest: /usr/local/bin/manage-rana-service.sh
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Copy udev rule for rana service
+      ansible.builtin.copy:
+        src: ../roles/common-tools/files/99-rana-power.rules
+        dest: /etc/udev/rules.d/99-rana-power.rules
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Reload udev rules
+      ansible.builtin.command:
+        cmd: udevadm control --reload-rules
+
+    - name: Trigger udev events
+      ansible.builtin.command:
+        cmd: udevadm trigger
+
+    - name: Disable rana service from starting on boot
       ansible.builtin.systemd:
         name: rana
-        enabled: yes
-        state: started
+        enabled: no
+        state: stopped
         daemon_reload: yes
