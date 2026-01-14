@@ -1,0 +1,17 @@
+[Unit]
+Description=Syncthing - Open Source Continuous File Synchronization for {{ ansible_user }}
+Documentation=man:syncthing(1)
+After=network.target
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=10
+User={{ ansible_user }}
+Group={{ ansible_user }}
+Environment=STNORESTART=yes
+ExecStart=/usr/bin/syncthing serve --no-browser --no-restart --logflags=0
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

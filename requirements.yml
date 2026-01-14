@@ -1,0 +1,13 @@
+---
+- name: Setup AI Coding Laptop
+  description: Installs all essential tools for AI development
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+  galaxy_tags:
+    - ai
+    - development
+    - setup

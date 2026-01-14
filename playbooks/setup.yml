@@ -1,0 +1,9 @@
+---
+- name: Setup AI Coding Laptop
+  hosts: localhost
+  connection: local
+  become: yes
+  vars:
+    user_home: "{{ lookup('env', 'HOME') }}"
+  roles:
+    - common-tools

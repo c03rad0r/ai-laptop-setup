@@ -1,0 +1,81 @@
+- name: Setup AI Laptop with Essential Tools
+  hosts: localhost
+  become: yes
+  vars:
+    user_name: "{{ ansible_user_id }}"
+    
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      
+    - name: Install common packages
+      apt:
+        name:
+          - git
+          - htop
+          - terminator
+        state: present
+
+    - name: Ensure keyrings directory exists
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+        
+    - name: Install dependencies for Syncthing
+      apt:
+        name:
+          - curl
+          - gnupg
+        state: present
+        
+    - name: Add Syncthing repository key
+      ansible.builtin.get_url:
+        url: https://syncthing.net/release-key.gpg
+        dest: /etc/apt/keyrings/syncthing.gpg
+        mode: '0644'
+        force: true
+        
+    - name: Add Syncthing repository
+      apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/syncthing.gpg] https://apt.syncthing.net/ syncthing stable"
+        state: present
+        filename: syncthing
+        
+    - name: Install Syncthing
+      apt:
+        name: syncthing
+        state: present
+        
+    - name: Create Syncthing service for user
+      systemd:
+        name: "syncthing@{{ user_name }}"
+        enabled: yes
+        state: started
+      ignore_errors: yes
+        
+    - name: Install Emacs
+      apt:
+        name: emacs
+        state: present
+        
+
+    - name: Add Microsoft GPG key
+      ansible.builtin.shell:
+        cmd: curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg
+        creates: /etc/apt/keyrings/microsoft.gpg
+
+    - name: Add Visual Studio Code repository
+      apt_repository:
+        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main"
+        state: present
+        filename: vscode
+
+    - name: Install Visual Studio Code
+      apt:
+        name: code
+        state: present
+        update_cache: yes
