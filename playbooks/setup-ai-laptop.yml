@@ -63,25 +63,67 @@
         state: present
         
 
-    - name: Add Microsoft GPG key
-      ansible.builtin.shell:
-        cmd: curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg
-        creates: /etc/apt/keyrings/microsoft.gpg
-
-    - name: Add Visual Studio Code repository
-      apt_repository:
-        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main"
-        state: present
-        filename: vscode
-
-    - name: Install Visual Studio Code
-      apt:
-        name: code
-        state: present
-        update_cache: yes
+#    - name: Download Microsoft GPG key
+#      ansible.builtin.get_url:
+#        url: https://packages.microsoft.com/keys/microsoft.asc
+#        dest: /tmp/microsoft.asc
+#        mode: '0644'
+#        force: true
+#
+#    - name: De-armor Microsoft GPG key
+#      ansible.builtin.command:
+#        cmd: gpg --dearmor --output /etc/apt/keyrings/microsoft.gpg /tmp/microsoft.asc
+#        creates: /etc/apt/keyrings/microsoft.gpg
+#      become: true
+#
+#    - name: Clean up temporary GPG key
+#      ansible.builtin.file:
+#        path: /tmp/microsoft.asc
+#        state: absent
+#
+#    - name: Add Visual Studio Code repository
+#      apt_repository:
+#        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main"
+#        state: present
+#        filename: vscode
+#
+#    - name: Install Visual Studio Code
+#      apt:
+#        name: code
+#        state: present
+#        update_cache: yes
 
     - name: Install ngit
       become_user: "{{ user_name }}"
       ansible.builtin.shell:
         cmd: curl -Ls https://ngit.dev/install.sh | bash
         creates: "/home/{{ user_name }}/.ngit/bin/ngit"
+
+    - name: Install dependencies for rana
+      apt:
+        name:
+          - cmake
+          - build-essential
+          - cargo
+        state: present
+
+    - name: Install rana
+      become_user: "{{ user_name }}"
+      community.general.cargo:
+        name: rana
+        state: present
+
+    - name: Create rana service file
+      ansible.builtin.template:
+        src: ../roles/common-tools/templates/rana.service.j2
+        dest: /etc/systemd/system/rana.service
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Enable and start rana service
+      ansible.builtin.systemd:
+        name: rana
+        enabled: yes
+        state: started
+        daemon_reload: yes

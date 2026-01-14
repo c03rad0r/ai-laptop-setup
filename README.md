@@ -4,8 +4,8 @@ This Ansible project automates the setup of Ubuntu laptops for AI development wo
 
 ## Tools that will be installed
 
-- goose (AI agent)
-- VS Code (code editor)
+- ngit (Git extension)
+- rana (Nostr miner)
 - Git (version control)
 - Emacs (text editor)
 - Syncthing (file synchronization)
@@ -22,7 +22,7 @@ This Ansible project automates the setup of Ubuntu laptops for AI development wo
 1. Clone this repository
 2. Run the playbook:
    ```
-   ansible-playbook playbooks/setup-ai-laptop.yml
+   sudo ansible-playbook playbooks/setup-ai-laptop.yml
    ```
 
 ## Usage
@@ -31,6 +31,6 @@ To setup a new AI laptop, simply run:
 
 ```bash
 cd ~/ai-laptop-setup
-ansible-playbook playbooks/setup-ai-laptop.yml
+sudo ansible-playbook playbooks/setup-ai-laptop.yml
 ```
 

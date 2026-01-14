@@ -1,0 +1,16 @@
+[Unit]
+Description=Rana Nostr Miner Service
+After=network.target
+
+[Service]
+User={{ user_name }}
+Group={{ user_name }}
+ExecStart=/home/{{ user_name }}/.cargo/bin/rana --vanity-n-prefix=c03rad0r,meshmate
+Restart=always
+RestartSec=5
+Nice=19
+StandardOutput=append:/home/{{ user_name }}/rana.log
+StandardError=append:/home/{{ user_name }}/rana.log
+
+[Install]
+WantedBy=multi-user.target
