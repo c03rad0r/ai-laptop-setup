@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User={{ user_name }}
 Group={{ user_name }}
-ExecStart=/home/{{ user_name }}/.cargo/bin/rana --vanity-n-prefix=c03rad0r,meshmate
+ExecStart=/home/{{ user_name }}/.cargo/bin/rana --vanity-n-prefix=c03rad0r,meshmate,n0strfan -s theend,end
 Restart=always
 RestartSec=5
 Nice=19
