@@ -1,0 +1,104 @@
+---
+- name: Update apt cache
+  become: true
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install system dependencies
+  become: true
+  apt:
+    name:
+      - git
+      - gcc
+      - sox
+      - libpng-dev
+      - libsndfile-dev
+      - python3
+      - python3-pip
+      - gqrx-sdr
+      - rtl-sdr
+      - gpredict
+      - libncurses-dev
+    state: present
+
+- name: Install python dependencies
+  pip:
+    name:
+      - opencv-python
+      - numpy
+    executable: pip3
+
+- name: Create wxsat directory
+  file:
+    path: "{{ ansible_env.HOME }}/wxsat"
+    state: directory
+    mode: '0755'
+
+- name: Download and compile meteor_demod
+  become: false
+  block:
+    - name: Clone meteor_demod repository
+      git:
+        repo: 'https://github.com/dbdexter-dev/meteor_demod'
+        dest: '{{ ansible_env.HOME }}/wxsat/meteor_demod'
+        version: devel
+        update: no
+    - name: Compile meteor_demod
+      command: make
+      args:
+        chdir: '{{ ansible_env.HOME }}/wxsat/meteor_demod'
+        creates: '{{ ansible_env.HOME }}/wxsat/meteor_demod/src/meteor_demod'
+
+- name: Download and compile meteor_decode
+  become: false
+  block:
+    - name: Clone meteor_decode repository
+      git:
+        repo: 'https://github.com/dbdexter-dev/meteor_decode'
+        dest: '{{ ansible_env.HOME }}/wxsat/meteor_decode'
+        version: devel
+        update: no
+    - name: Compile meteor_decode
+      command: make
+      args:
+        chdir: '{{ ansible_env.HOME }}/wxsat/meteor_decode'
+        creates: '{{ ansible_env.HOME }}/wxsat/meteor_decode/src/meteor_decode'
+
+- name: Download and compile aptdec
+  become: false
+  block:
+    - name: Clone aptdec repository
+      git:
+        repo: 'https://github.com/Xerbo/aptdec'
+        dest: '{{ ansible_env.HOME }}/wxsat/aptdec'
+        update: no
+    - name: Compile aptdec
+      command: make
+      args:
+        chdir: '{{ ansible_env.HOME }}/wxsat/aptdec'
+        creates: '{{ ansible_env.HOME }}/wxsat/aptdec/aptdec'
+
+- name: Download meteor_corrector
+  git:
+    repo: 'https://github.com/Xerbo/meteor_corrector'
+    dest: '{{ ansible_env.HOME }}/wxsat/meteor_corrector'
+    update: no
+
+- name: Download gqrxraw2wav.sh
+  get_url:
+    url: https://gist.githubusercontent.com/Xerbo/5e0d0b7e6e7ca7b832a14a8fa909cc16/raw/fc3ee25f57bdb0da69ce2b125d6e188f7ebf3dcf/gqrxraw2wav.sh
+    dest: '{{ ansible_env.HOME }}/wxsat/gqrxraw2wav.sh'
+    mode: '0755'
+
+- name: Add aliases to .bashrc
+  lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: "{{ item }}"
+    create: yes
+  with_items:
+    - "alias meteor_demod='~/wxsat/meteor_demod/src/meteor_demod'"
+    - "alias meteor_decode='~/wxsat/meteor_decode/src/meteor_decode'"
+    - "alias aptdec='~/wxsat/aptdec/aptdec'"
+    - "alias gqrxraw2wav='~/wxsat/gqrxraw2wav.sh'"
+    - "alias meteor_corrector='~/wxsat/meteor_corrector/correct.py'"

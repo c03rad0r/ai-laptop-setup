@@ -1,0 +1,25 @@
+---
+- name: Install and Configure Weather Satellite Tools
+  hosts: localhost
+  connection: local
+  roles:
+    - wxsat-tools
+  post_tasks:
+    - name: Documentation
+      debug:
+        msg: |
+          Weather Satellite Tools Installation Complete!
+
+          The following tools have been installed and configured:
+
+          - meteor_demod: Demodulates QPSK signals from Meteor-M weather satellites.
+          - meteor_decode: Decodes the demodulated signal from meteor_demod to produce an image.
+          - aptdec: Decodes APT signals from NOAA weather satellites.
+          - meteor_corrector: Corrects colors and geometry of Meteor-M images.
+          - gqrxraw2wav.sh: A script to convert GQRX raw I/Q data to a WAV file.
+          - gqrx-sdr: An open source software defined radio receiver (SDR) powered by the GNU Radio and the Qt graphical toolkit.
+          - rtl-sdr: A package that provides drivers for Realtek RTL2832U based DVB-T receivers, which can be used as a cheap SDR.
+          - gpredict: A real-time satellite tracking and orbit prediction application.
+
+          Aliases for these tools have been added to your .bashrc file.
+          You may need to run 'source ~/.bashrc' or open a new terminal for the aliases to take effect.
