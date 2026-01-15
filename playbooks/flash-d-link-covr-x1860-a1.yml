@@ -1,0 +1,54 @@
+---
+- name: Part 1 - Prepare for flashing D-Link COVR-X1860 A1
+  hosts: localhost
+  gather_facts: no
+  vars:
+    firmware_url: "https://downloads.openwrt.org/releases/23.05.2/targets/ramips/mt7621/openwrt-23.05.2-ramips-mt7621-d-link_covr-x1860-a1-squashfs-recovery.bin"
+    firmware_path: "/tmp/openwrt-recovery.bin"
+
+  tasks:
+    - name: Download OpenWrt recovery firmware
+      ansible.builtin.get_url:
+        url: "{{ firmware_url }}"
+        dest: "{{ firmware_path }}"
+        mode: '0644'
+
+    - name: Display manual flashing instructions
+      ansible.builtin.pause:
+        prompt: |
+          Firmware downloaded to {{ firmware_path }}. Please perform the following manual steps:
+
+          1. Set your computer's wired ethernet adapter to a static IP address of 192.168.0.10 with a netmask of 255.255.255.0.
+          2. Connect your computer to one of the LAN ports of the router.
+          3. Power on the router and hold the reset button for 5 seconds until the power LED starts flashing orange.
+          4. Open a web browser and navigate to http://192.168.0.1.
+          5. You should see the D-Link recovery page. Upload the firmware file: {{ firmware_path }}
+          6. The router will flash the firmware and reboot. This will take a few minutes.
+          7. Once the router has rebooted, the power LED should be solid white.
+          8. Change your computer's IP address back to DHCP, or set a static IP in the 192.168.1.0/24 range (e.g., 192.168.1.10).
+             The router's new IP address will be 192.168.1.1.
+
+          Press Enter when you are ready to proceed with package installation on the router...
+
+- name: Part 2 - Install package on OpenWrt router
+  hosts: openwrt_router # This host must be defined in your inventory, pointing to 192.168.1.1
+  gather_facts: no
+  remote_user: root
+  vars:
+    package_url: "http://blossom.swissdash.site/77d78160225caa15da1e9895af9f0d0bf5b78c0688eb373d95b088e60ec5df02.ipk"
+    package_filename: "77d78160225caa15da1e9895af9f0d0bf5b78c0688eb373d95b088e60ec5df02.ipk"
+
+  tasks:
+    - name: Wait for router to become reachable over SSH
+      ansible.builtin.wait_for_connection:
+        delay: 10
+        timeout: 300
+
+    - name: Install package from URL
+      ansible.builtin.shell: |
+        cd /tmp
+        wget {{ package_url }}
+        opkg update
+        opkg install {{ package_filename }}
+      args:
+        chdir: /tmp
