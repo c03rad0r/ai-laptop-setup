@@ -16,23 +16,32 @@
     state: present
   when: ansible_os_family == "Debian"
 
-- name: Add VS Code repository key
-  apt_key:
-    url: https://packages.microsoft.com/keys/microsoft.asc
-    state: present
-  when: ansible_os_family == "Debian"
-
-- name: Add VS Code repository
-  apt_repository:
-    repo: deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main
-    state: present
-  when: ansible_os_family == "Debian"
-
-- name: Install VS Code
-  apt:
-    name: code
-    state: present
-  when: ansible_os_family == "Debian"
+#- name: Ensure keyrings directory exists
+#  ansible.builtin.file:
+#    path: /etc/apt/keyrings
+#    state: directory
+#    mode: '0755'
+#  when: ansible_os_family == "Debian"
+#
+#- name: Add Microsoft GPG key
+#  ansible.builtin.shell:
+#    cmd: curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /etc/apt/keyrings/microsoft.gpg
+#    creates: /etc/apt/keyrings/microsoft.gpg
+#  become: true
+#  when: ansible_os_family == "Debian"
+#
+#- name: Add Visual Studio Code repository
+#  apt_repository:
+#    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main"
+#    state: present
+#    filename: vscode
+#  when: ansible_os_family == "Debian"
+#
+#- name: Install VS Code
+#  apt:
+#    name: code
+#    state: present
+#  when: ansible_os_family == "Debian"
 
 - name: Install Syncthing
   apt:
@@ -54,3 +63,8 @@
 
 - name: Include Goose installation tasks
   include_tasks: goose.yml
+
+- name: Install act
+  shell: curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | bash
+  args:
+    creates: /usr/local/bin/act

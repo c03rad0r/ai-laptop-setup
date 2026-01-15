@@ -1,0 +1,27 @@
+---
+- name: Install act
+  hosts: localhost
+  tasks:
+    - name: Download and install act to a temporary directory
+      ansible.builtin.shell:
+        cmd: curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | bash
+      args:
+        creates: ./bin/act
+
+    - name: Ensure ~/.local/bin directory exists
+      ansible.builtin.file:
+        path: "{{ lookup('env', 'HOME') }}/.local/bin"
+        state: directory
+        mode: '0755'
+
+    - name: Move act to the user's local bin directory
+      ansible.builtin.copy:
+        src: ./bin/act
+        dest: "{{ lookup('env', 'HOME') }}/.local/bin/act"
+        remote_src: yes
+        mode: '0755'
+
+    - name: Clean up the temporary bin directory
+      ansible.builtin.file:
+        path: ./bin
+        state: absent
