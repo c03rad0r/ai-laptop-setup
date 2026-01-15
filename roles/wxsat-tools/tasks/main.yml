@@ -20,14 +20,9 @@
       - rtl-sdr
       - gpredict
       - libncurses-dev
+      - python3-numpy
+      - python3-opencv
     state: present
-
-- name: Install python dependencies
-  pip:
-    name:
-      - opencv-python
-      - numpy
-    executable: pip3
 
 - name: Create wxsat directory
   file:
@@ -42,7 +37,6 @@
       git:
         repo: 'https://github.com/dbdexter-dev/meteor_demod'
         dest: '{{ ansible_env.HOME }}/wxsat/meteor_demod'
-        version: devel
         update: no
     - name: Compile meteor_demod
       command: make
@@ -50,20 +44,23 @@
         chdir: '{{ ansible_env.HOME }}/wxsat/meteor_demod'
         creates: '{{ ansible_env.HOME }}/wxsat/meteor_demod/src/meteor_demod'
 
-- name: Download and compile meteor_decode
+- name: Download and compile meteor_decoder
   become: false
   block:
-    - name: Clone meteor_decode repository
+    - name: Remove existing meteor_decoder directory to ensure clean clone
+      file:
+        path: '{{ ansible_env.HOME }}/wxsat/meteor_decoder'
+        state: absent
+    - name: Clone meteor_decoder repository
       git:
-        repo: 'https://github.com/dbdexter-dev/meteor_decode'
-        dest: '{{ ansible_env.HOME }}/wxsat/meteor_decode'
-        version: devel
+        repo: 'https://github.com/artlav/meteor_decoder.git'
+        dest: '{{ ansible_env.HOME }}/wxsat/meteor_decoder'
         update: no
-    - name: Compile meteor_decode
+    - name: Compile meteor_decoder
       command: make
       args:
-        chdir: '{{ ansible_env.HOME }}/wxsat/meteor_decode'
-        creates: '{{ ansible_env.HOME }}/wxsat/meteor_decode/src/meteor_decode'
+        chdir: '{{ ansible_env.HOME }}/wxsat/meteor_decoder'
+        creates: '{{ ansible_env.HOME }}/wxsat/meteor_decoder/meteor_decoder'
 
 - name: Download and compile aptdec
   become: false
@@ -98,7 +95,7 @@
     create: yes
   with_items:
     - "alias meteor_demod='~/wxsat/meteor_demod/src/meteor_demod'"
-    - "alias meteor_decode='~/wxsat/meteor_decode/src/meteor_decode'"
+    - "alias meteor_decode='~/wxsat/meteor_decoder/meteor_decoder'"
     - "alias aptdec='~/wxsat/aptdec/aptdec'"
     - "alias gqrxraw2wav='~/wxsat/gqrxraw2wav.sh'"
     - "alias meteor_corrector='~/wxsat/meteor_corrector/correct.py'"
