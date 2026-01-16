@@ -1,7 +1,36 @@
 ---
-- name: Install act
+- name: Install act and Docker
   hosts: localhost
   tasks:
+    - name: Install Docker
+      become: yes
+      ansible.builtin.apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Start and enable Docker service
+      become: yes
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Ensure docker group exists
+      become: yes
+      ansible.builtin.group:
+        name: docker
+        state: present
+
+    - name: Add the user to the docker group
+      become: yes
+      ansible.builtin.user:
+        name: "{{ lookup('env', 'USER') }}"
+        groups: docker
+        append: yes
+      notify:
+        - Reboot prompt
+
     - name: Download and install act to a temporary directory
       ansible.builtin.shell:
         cmd: curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | bash
@@ -25,3 +54,8 @@
       ansible.builtin.file:
         path: ./bin
         state: absent
+
+  handlers:
+    - name: Reboot prompt
+      ansible.builtin.debug:
+        msg: "Please reboot your system for the Docker group changes to take effect."
