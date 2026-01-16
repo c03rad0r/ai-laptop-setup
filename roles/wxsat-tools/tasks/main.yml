@@ -23,6 +23,7 @@
       - python3-numpy
       - python3-opencv
       - lazarus
+      - cmake
     state: present
 
 - name: Create wxsat directory
@@ -75,11 +76,18 @@
         repo: 'https://github.com/Xerbo/aptdec'
         dest: '{{ ansible_user_dir }}/wxsat/aptdec'
         update: no
-    - name: Compile aptdec
-      command: make
+    - name: Create build directory for aptdec
+      file:
+        path: '{{ ansible_user_dir }}/wxsat/aptdec/build'
+        state: directory
+    - name: Run cmake and make for aptdec
+      command: "{{ item }}"
       args:
-        chdir: '{{ ansible_user_dir }}/wxsat/aptdec'
-        creates: '{{ ansible_user_dir }}/wxsat/aptdec/aptdec'
+        chdir: '{{ ansible_user_dir }}/wxsat/aptdec/build'
+        creates: '{{ ansible_user_dir }}/wxsat/aptdec/build/aptdec'
+      with_items:
+        - cmake ..
+        - make
 
 - name: Download meteor_corrector
   git:
@@ -101,6 +109,6 @@
   with_items:
     - "alias meteor_demod='~/wxsat/meteor_demod/src/meteor_demod'"
     - "alias meteor_decode='~/wxsat/meteor_decoder/medet'"
-    - "alias aptdec='~/wxsat/aptdec/aptdec'"
+    - "alias aptdec='~/wxsat/aptdec/build/aptdec'"
     - "alias gqrxraw2wav='~/wxsat/gqrxraw2wav.sh'"
     - "alias meteor_corrector='~/wxsat/meteor_corrector/correct.py'"
