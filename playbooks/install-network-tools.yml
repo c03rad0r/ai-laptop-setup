@@ -1,0 +1,14 @@
+---
+- name: Install Network Analysis Tools
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Install nethogs
+      apt:
+        name: nethogs
+        state: present
+
+    - name: Install iftop
+      apt:
+        name: iftop
+        state: present
