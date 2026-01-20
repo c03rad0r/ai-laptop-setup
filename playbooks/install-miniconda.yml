@@ -1,0 +1,97 @@
+---
+- name: Install Miniconda and set up environment
+  hosts: localhost
+  become: false
+  vars:
+    miniconda_installer: "/tmp/miniconda.sh"
+    miniconda_prefix: "/opt/miniconda"
+    conda_env_name: "test_env"
+    conda_env_path: "{{ miniconda_prefix }}/envs/{{ conda_env_name }}"
+    test_env_path: "/tmp/test_env"
+    
+  tasks:
+    - name: Download Miniconda installer
+      get_url:
+        url: https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+        dest: "{{ miniconda_installer }}"
+        mode: '0755'
+      register: download_result
+      until: download_result is succeeded
+      retries: 3
+      delay: 5
+
+    - name: Install Miniconda
+      shell: |
+        bash {{ miniconda_installer }} -b -p {{ miniconda_prefix }}
+      args:
+        creates: "{{ miniconda_prefix }}/bin/conda"
+      register: install_result
+
+    - name: Initialize conda for bash
+      shell: |
+        {{ miniconda_prefix }}/bin/conda init bash
+      register: init_result
+
+    - name: Accept conda Terms of Service
+      shell: |
+        {{ miniconda_prefix }}/bin/conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+        {{ miniconda_prefix }}/bin/conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+      args:
+        executable: /bin/bash
+      register: accept_tos_result
+
+    - name: Clean up previous temporary test environment
+      file:
+        path: "{{ test_env_path }}"
+        state: absent
+      ignore_errors: true
+
+    - name: Create temporary test environment
+      shell: |
+        {{ miniconda_prefix }}/bin/conda create --prefix {{ test_env_path }} python=3.9 -y
+      args:
+        executable: /bin/bash
+      register: create_test_env_result
+
+    - name: Install dependencies in test environment
+      shell: |
+        {{ miniconda_prefix }}/bin/conda install --prefix {{ test_env_path }} -c conda-forge requests numpy -y
+      args:
+        executable: /bin/bash
+      register: install_test_deps_result
+
+    - name: Verify test environment
+      shell: |
+        {{ test_env_path }}/bin/python -c "import requests; import numpy; print('Test environment dependencies installed successfully')"
+      args:
+        executable: /bin/bash
+      register: verify_test_result
+
+    - name: Display test verification result
+      debug:
+        msg: "{{ verify_test_result.stdout }}"
+
+    - name: Create actual conda environment
+      shell: |
+        {{ miniconda_prefix }}/bin/conda create --prefix {{ conda_env_path }} python=3.9 -y
+      args:
+        executable: /bin/bash
+      register: create_env_result
+
+    - name: Install dependencies in the actual conda environment
+      shell: |
+        {{ miniconda_prefix }}/bin/conda install --prefix {{ conda_env_path }} -c conda-forge biopython pandas -y
+      args:
+        executable: /bin/bash
+      register: install_deps_result
+
+    - name: Verify actual environment installation
+      shell: |
+        {{ conda_env_path }}/bin/python -c "import Bio; import pandas; print('Actual environment dependencies installed successfully')"
+      args:
+        executable: /bin/bash
+      register: verify_result
+
+    - name: Display actual verification result
+      debug:
+        msg: "{{ verify_result.stdout }}"
