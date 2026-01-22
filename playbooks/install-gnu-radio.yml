@@ -3,8 +3,14 @@
   hosts: localhost
   become: yes
   tasks:
-    - name: Install GNU Radio
+    - name: Install GNU Radio and common SDR tools
       apt:
-        name: gnuradio
+        name:
+          - gnuradio
+          - uhd-host
+          - rtl-sdr
+          - gr-osmosdr
+          - soapysdr-module-all
+          - gqrx-sdr
         state: present
         update_cache: yes
