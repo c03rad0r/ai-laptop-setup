@@ -1,0 +1,10 @@
+---
+- name: Install GNU Radio
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Install GNU Radio
+      apt:
+        name: gnuradio
+        state: present
+        update_cache: yes
