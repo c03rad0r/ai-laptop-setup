@@ -1,0 +1,95 @@
+---
+- name: Install OCR Tools on Ubuntu
+  hosts: localhost
+  become: yes
+  vars:
+    # Directory to store configuration and OCR training data
+    stirling_base_dir: "/opt/stirling-pdf"
+    stirling_port: "8080"
+    stirling_image: "stirlingtools/stirling-pdf:latest"
+  
+  tasks:
+    - name: Update apt cache and install dependencies
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - python3-pip
+        state: present
+        update_cache: yes
+
+    - name: Install Docker and Docker Compose plugin
+      apt:
+        name:
+          - docker.io
+          - docker-compose-v2
+        state: present
+
+    - name: Ensure Docker service is running
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Install additional OCR tools
+      apt:
+        name:
+          - tesseract-ocr
+          - tesseract-ocr-eng
+          - tesseract-ocr-deu
+          - ocrmypdf
+          - pdfsandwich
+          - gocr
+          - ocrad
+          - poppler-utils  # for pdftotext
+        state: present
+
+    - name: Create necessary directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ stirling_base_dir }}"
+        - "{{ stirling_base_dir }}/trainingData"
+        - "{{ stirling_base_dir }}/configs"
+
+    - name: Deploy Stirling PDF using Docker Compose
+      copy:
+        dest: "{{ stirling_base_dir }}/docker-compose.yml"
+        content: |
+          services:
+            stirling-pdf:
+              image: {{ stirling_image }}
+              container_name: stirling-pdf
+              ports:
+                - '{{ stirling_port }}:8080'
+              volumes:
+                - ./trainingData:/usr/share/tessdata
+                - ./configs:/configs
+              environment:
+                - DOCKER_ENABLE_SECURITY=false
+                - SYSTEM_DEFAULTLOCALE=en-US
+              restart: unless-stopped
+
+    - name: Start Stirling PDF container
+      shell: "docker compose -f {{ stirling_base_dir }}/docker-compose.yml up -d"
+
+    - name: Verify installation
+      shell: "which {{ item }}"
+      register: installed_tools
+      ignore_errors: yes
+      loop:
+        - tesseract
+        - ocrmypdf
+        - gocr
+        - ocrad
+        - pdftotext
+
+    - name: Display installed tools
+      debug:
+        msg: "Installed: {{ item.stdout }}"
+      loop: "{{ installed_tools.results }}"
+      when: item.rc == 0
