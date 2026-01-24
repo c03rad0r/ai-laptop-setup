@@ -30,9 +30,9 @@ find "$INPUT_DIR" -name "*.pdf" -type f | while read pdf_file; do
     # Try ocrmypdf first (better for PDFs)
     if command -v ocrmypdf &> /dev/null; then
         echo "  Using ocrmypdf..."
-        ocrmypdf -l eng+deu --skip-text "$pdf_file" "$pdf_file" 2>/dev/null || true
+        ocrmypdf -l eng+deu --force-ocr "$pdf_file" "$pdf_file"
         # Extract text from the PDF (whether it was OCR'd or not)
-        pdftotext "$pdf_file" "$output_file" 2>/dev/null || true
+        pdftotext "$pdf_file" "$output_file"
     else
         # Fallback to tesseract
         echo "  Using tesseract..."
