@@ -8,3 +8,4 @@
 - import_playbook: increase-swap-size.yml
 - import_playbook: setup-ai-laptop.yml
 - import_playbook: install-vscode.yml
+- import_playbook: install-syncthing.yml

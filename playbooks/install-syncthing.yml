@@ -1,0 +1,49 @@
+---
+- name: Install Syncthing
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Install dependencies
+      apt:
+        name:
+          - curl
+          - apt-transport-https
+          - gnupg
+        state: present
+        update_cache: yes
+
+    - name: Ensure keyrings directory exists
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Add Syncthing GPG key
+      get_url:
+        url: https://syncthing.net/release-key.gpg
+        dest: /etc/apt/keyrings/syncthing-archive-keyring.gpg
+        mode: '0644'
+        force: true
+
+    - name: Add Syncthing repository
+      apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable"
+        state: present
+        filename: syncthing
+
+    - name: Install Syncthing
+      apt:
+        name: syncthing
+        state: present
+        update_cache: yes
+
+    - name: Enable and start Syncthing service for the user
+      systemd:
+        name: "syncthing@{{ lookup('env', 'SUDO_USER') }}.service"
+        enabled: yes
+        state: started
+      when: lookup('env', 'SUDO_USER') is defined
+
+    - name: Display Syncthing status
+      debug:
+        msg: "Syncthing is installed and running. Access the Web GUI at http://127.0.0.1:8384"
