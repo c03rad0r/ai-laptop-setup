@@ -1,0 +1,92 @@
+---
+- name: Collect and Import .deb packages
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Find .deb files in apt cache
+      find:
+        paths: /var/cache/apt/archives
+        patterns: "*.deb"
+      register: deb_files
+
+    - name: Ensure import directory exists
+      file:
+        path: /var/cache/apt-cacher-ng/_import
+        state: directory
+        owner: apt-cacher-ng
+        group: apt-cacher-ng
+        mode: '0755'
+
+    - name: Check if import directory exists before copy
+      ansible.builtin.stat:
+        path: /var/cache/apt-cacher-ng/_import
+      register: import_dir_before_copy
+
+    - name: Display import directory status before copy
+      debug:
+        var: import_dir_before_copy
+
+    - name: Copy .deb files to import directory
+      copy:
+        src: "{{ item.path }}"
+        dest: /var/cache/apt-cacher-ng/_import/
+        remote_src: yes
+        owner: apt-cacher-ng
+        group: apt-cacher-ng
+      loop: "{{ deb_files.files }}"
+
+    - name: Check if import directory exists after copy
+      ansible.builtin.stat:
+        path: /var/cache/apt-cacher-ng/_import
+      register: import_dir_after_copy
+
+    - name: Display import directory status after copy
+      debug:
+        var: import_dir_after_copy
+
+    - name: List contents of import directory after copy
+      ansible.builtin.command: ls -la /var/cache/apt-cacher-ng/_import/
+      register: import_dir_contents_after_copy
+      changed_when: false
+
+    - name: Display contents of import directory after copy
+      debug:
+        var: import_dir_contents_after_copy.stdout_lines
+
+    - name: Run apt update to fetch repository index files
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Display apt-cacher-ng log before import
+      command: cat /var/log/apt-cacher-ng/apt-cacher.log
+      register: log_contents_before
+      changed_when: false
+
+    - name: Display log contents before import
+      debug:
+        var: log_contents_before.stdout_lines
+
+    - name: Trigger import with curl and capture output
+      ansible.builtin.command: curl "http://localhost:3142/acng-report.html?abortOnErrors=aOe&doImport=Start+Import&calcSize=cs&asNeeded=an#bottom"
+      register: import_result
+      changed_when: false
+
+    - name: Check for successful import message
+      ansible.builtin.assert:
+        that:
+          - "'Maintenance task Data Import' in import_result.stdout"
+          - "'No index files detected' not in import_result.stdout"
+        fail_msg: "Apt-cacher-ng import failed or did not complete successfully. Output: {{ import_result.stdout }}"
+
+    - name: Wait for apt-cacher-ng to process import
+      ansible.builtin.pause:
+        seconds: 10
+
+    - name: Display apt-cacher-ng log after import
+      command: tail /var/log/apt-cacher-ng/apt-cacher.log
+      register: log_contents_after
+      changed_when: false
+
+    - name: Display log contents after import
+      debug:
+        var: log_contents_after.stdout_lines

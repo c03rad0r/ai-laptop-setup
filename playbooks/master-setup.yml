@@ -12,3 +12,5 @@
 - import_playbook: setup-ai-laptop.yml
 - import_playbook: install-vscode.yml
 - import_playbook: install-syncthing.yml
+- import_playbook: import-deb-packages.yml
+- import_playbook: install-docker.yml

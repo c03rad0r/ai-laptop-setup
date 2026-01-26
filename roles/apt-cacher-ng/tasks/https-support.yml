@@ -1,0 +1,8 @@
+---
+- name: Ensure apt-cacher-ng tunnel directory exists
+  ansible.builtin.file:
+    path: /var/cache/apt-cacher-ng/tunnels
+    state: directory
+    owner: apt-cacher-ng
+    group: apt-cacher-ng
+    mode: '0755'

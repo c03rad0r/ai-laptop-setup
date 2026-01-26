@@ -1,0 +1,21 @@
+---
+- name: Check import directory creation
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Ensure import directory exists
+      ansible.builtin.file:
+        path: /var/cache/apt-cacher-ng/_import
+        state: directory
+        owner: apt-cacher-ng
+        group: apt-cacher-ng
+        mode: '0755'
+
+    - name: Verify directory creation
+      ansible.builtin.stat:
+        path: /var/cache/apt-cacher-ng/_import
+      register: import_dir_status
+
+    - name: Display directory status
+      ansible.builtin.debug:
+        var: import_dir_status

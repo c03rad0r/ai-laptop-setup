@@ -1,12 +1,20 @@
 ---
 - name: Configure Apt-Cacher-NG Client
-  hosts: all
+  hosts: all:!openwrt_router
   become: yes
   vars:
     apt_proxy: "http://{{ hostvars[groups['mirror_server'][0]]['ansible_default_ipv4']['address'] }}:3142"
   tasks:
-    - name: Set nodes to use the local mirror
+    - name: Set nodes to use the local mirror for HTTP and HTTPS
       copy:
-        content: 'Acquire::http::Proxy "{{ apt_proxy }}";'
+        content: |
+          Acquire::http::Proxy "{{ apt_proxy }}";
+          Acquire::https::Proxy "{{ apt_proxy }}";
         dest: /etc/apt/apt.conf.d/01proxy
-      when: inventory_hostname not in groups['mirror_server']
+
+    - name: Clean apt cache before update
+      command: rm -rf /var/lib/apt/lists/*
+
+    - name: Update apt cache to populate cacher indexes
+      apt:
+        update_cache: yes
