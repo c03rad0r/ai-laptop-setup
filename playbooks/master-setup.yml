@@ -1,39 +1,10 @@
----
-- name: Master playbook to run all other playbooks
-  hosts: localhost
-  connection: local
-  become: yes
-
-  tasks:
-    - name: Import flash-d-link-covr-x1860-a1.yml
-      ansible.builtin.import_playbook: flash-d-link-covr-x1860-a1.yml
-
-    - name: Import install-act.yml
-      ansible.builtin.import_playbook: install-act.yml
-
-    - name: Import install-gnu-radio.yml
-      ansible.builtin.import_playbook: install-gnu-radio.yml
-
-    - name: Import install-miniconda.yml
-      ansible.builtin.import_playbook: install-miniconda.yml
-
-    - name: Import install-network-tools.yml
-      ansible.builtin.import_playbook: install-network-tools.yml
-
-    - name: Import install-ocr-tools.yml
-      ansible.builtin.import_playbook: install-ocr-tools.yml
-
-    - name: Import install-wxsat-tools.yml
-      ansible.builtin.import_playbook: install-wxsat-tools.yml
-
-    - name: Import increase-swap-size.yml
-      ansible.builtin.import_playbook: increase-swap-size.yml
-
-    - name: Import setup-ai-laptop.yml
-      ansible.builtin.import_playbook: setup-ai-laptop.yml
-
-    - name: Import setup.yml
-      ansible.builtin.import_playbook: setup.yml
-
-    - name: Import install-vscode.yml
-      ansible.builtin.import_playbook: install-vscode.yml
+- import_playbook: install-act.yml
+- import_playbook: install-gnu-radio.yml
+- import_playbook: install-miniconda.yml
+- import_playbook: install-network-tools.yml
+- import_playbook: install-ocr-tools.yml
+- import_playbook: install-wxsat-tools.yml
+- import_playbook: increase-swap-size.yml
+- import_playbook: setup-ai-laptop.yml
+- import_playbook: setup.yml
+- import_playbook: install-vscode.yml
