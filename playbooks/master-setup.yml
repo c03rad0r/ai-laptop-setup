@@ -1,0 +1,36 @@
+---
+- name: Master playbook to run all other playbooks
+  hosts: localhost
+  connection: local
+  become: yes
+
+  tasks:
+    - name: Run flash-d-link-covr-x1860-a1.yml
+      ansible.builtin.include_tasks: flash-d-link-covr-x1860-a1.yml
+
+    - name: Run install-act.yml
+      ansible.builtin.include_tasks: install-act.yml
+
+    - name: Run install-gnu-radio.yml
+      ansible.builtin.include_tasks: install-gnu-radio.yml
+
+    - name: Run install-miniconda.yml
+      ansible.builtin.include_tasks: install-miniconda.yml
+
+    - name: Run install-network-tools.yml
+      ansible.builtin.include_tasks: install-network-tools.yml
+
+    - name: Run install-ocr-tools.yml
+      ansible.builtin.include_tasks: install-ocr-tools.yml
+
+    - name: Run install-wxsat-tools.yml
+      ansible.builtin.include_tasks: install-wxsat-tools.yml
+
+    - name: Run increase-swap-size.yml
+      ansible.builtin.include_tasks: increase-swap-size.yml
+
+    - name: Run setup-ai-laptop.yml
+      ansible.builtin.include_tasks: setup-ai-laptop.yml
+
+    - name: Run setup.yml
+      ansible.builtin.include_tasks: setup.yml
