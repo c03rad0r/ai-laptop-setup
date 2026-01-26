@@ -18,6 +18,12 @@
           - terminator
         state: present
 
+    - name: Set Terminator as default terminal
+      ansible.builtin.shell:
+        cmd: update-alternatives --install /usr/bin/x-terminal-emulator x-terminal-emulator /usr/bin/terminator 20
+      args:
+        creates: /etc/alternatives/x-terminal-emulator
+
     - name: Ensure keyrings directory exists
       ansible.builtin.file:
         path: /etc/apt/keyrings
