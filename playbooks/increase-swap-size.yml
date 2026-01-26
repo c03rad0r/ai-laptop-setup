@@ -1,7 +1,7 @@
 
 ---
 - name: Increase swap space
-  hosts: all
+  hosts: localhost
   become: true
   vars:
     swap_path: "/swapfile"
@@ -12,7 +12,7 @@
     - name: Gather disk facts
       ansible.builtin.setup:
         gather_subset:
-          - "disk_facts"
+          - "devices"
 
     - name: Calculate swap size based on disk size
       ansible.builtin.set_fact:
