@@ -3,35 +3,23 @@
   apt:
     name:
       - curl
-      - git
+      - bzip2
     state: present
 
 - name: Check if Goose is already installed
   stat:
-    path: "{{ user_home }}/go/bin/goose"
+    path: "{{ user_home }}/.local/bin/goose"
   register: goose_installed
 
-- name: Install Go (required for Goose)
-  shell: |
-    cd /tmp
-    wget https://go.dev/dl/go1.22.5.linux-amd64.tar.gz
-    sudo rm -rf /usr/local/go
-    sudo tar -C /usr/local -xzf go1.22.5.linux-amd64.tar.gz
-    echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.profile
-  when: not goose_installed.stat.exists
-
 - name: Install Goose
-  shell: |
-    export PATH=$PATH:/usr/local/go/bin
-    go install github.com/block/goose@latest
-  environment:
-    GOPATH: "{{ user_home }}/go"
-    PATH: "/usr/local/go/bin:{{ user_home }}/go/bin:{{ ansible_env.PATH }}"
+  shell: "curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash"
   when: not goose_installed.stat.exists
+  args:
+    creates: "{{ user_home }}/.local/bin/goose"
 
 - name: Add Goose to PATH
   lineinfile:
-    path: "{{ user_home }}/.profile"
-    line: 'export PATH=$PATH:{{ user_home }}/go/bin'
+    path: "{{ user_home }}/.bashrc"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
     create: yes
   when: not goose_installed.stat.exists
