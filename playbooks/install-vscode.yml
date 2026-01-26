@@ -1,0 +1,33 @@
+---
+- name: Install Visual Studio Code via APT
+  hosts: localhost
+  become: true
+
+  tasks:
+    - name: Update the package index and install dependencies
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+        name:
+          - software-properties-common
+          - apt-transport-https
+          - wget
+          - gpg
+        state: present
+
+    - name: Import the Microsoft GPG key
+      ansible.builtin.shell:
+        cmd: wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /usr/share/keyrings/vscode.gpg > /dev/null
+        creates: /usr/share/keyrings/vscode.gpg
+
+    - name: Enable the VS Code repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/vscode.gpg] https://packages.microsoft.com/repos/vscode stable main"
+        state: present
+        filename: vscode
+
+    - name: Update the package index again and install Code
+      ansible.builtin.apt:
+        update_cache: yes
+        name: code
+        state: present

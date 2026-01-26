@@ -44,3 +44,7 @@
     - name: Run setup.yml
       ansible.builtin.include_tasks: setup.yml
       ignore_errors: true
+
+    - name: Run install-vscode.yml
+      ansible.builtin.include_tasks: install-vscode.yml
+      ignore_errors: true
