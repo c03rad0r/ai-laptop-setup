@@ -1,0 +1,18 @@
+---
+- name: Install apt-cacher-ng
+  apt:
+    name: apt-cacher-ng
+    state: present
+
+- name: Ensure apt-cacher-ng is started and enabled
+  systemd:
+    name: apt-cacher-ng
+    state: started
+    enabled: yes
+
+- name: Open firewall port 3142 (UFW)
+  ufw:
+    rule: allow
+    port: '3142'
+    proto: tcp
+  when: ansible_facts.services['ufw.service'] is defined

@@ -3,3 +3,6 @@ localhost ansible_connection=local
 
 [openwrt_router]
 192.168.1.1
+
+[mirror_server]
+localhost

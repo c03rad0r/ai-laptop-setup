@@ -1,0 +1,12 @@
+---
+- name: Configure Apt-Cacher-NG Client
+  hosts: all
+  become: yes
+  vars:
+    apt_proxy: "http://{{ hostvars[groups['mirror_server'][0]]['ansible_default_ipv4']['address'] }}:3142"
+  tasks:
+    - name: Set nodes to use the local mirror
+      copy:
+        content: 'Acquire::http::Proxy "{{ apt_proxy }}";'
+        dest: /etc/apt/apt.conf.d/01proxy
+      when: inventory_hostname not in groups['mirror_server']

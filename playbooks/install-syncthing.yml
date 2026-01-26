@@ -12,6 +12,16 @@
         state: present
         update_cache: yes
 
+    - name: Remove conflicting Syncthing sources file
+      file:
+        path: /etc/apt/sources.list.d/syncthing.list
+        state: absent
+
+    - name: Remove conflicting Syncthing GPG key
+      file:
+        path: /etc/apt/keyrings/syncthing.gpg
+        state: absent
+
     - name: Ensure keyrings directory exists
       file:
         path: /etc/apt/keyrings

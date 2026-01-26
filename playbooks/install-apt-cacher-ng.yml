@@ -1,0 +1,6 @@
+---
+- name: Install and Configure Apt-Cacher-NG
+  hosts: localhost
+  become: yes
+  roles:
+    - apt-cacher-ng
