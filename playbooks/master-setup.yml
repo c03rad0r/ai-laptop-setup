@@ -5,46 +5,35 @@
   become: yes
 
   tasks:
-    - name: Run flash-d-link-covr-x1860-a1.yml
-      ansible.builtin.include_tasks: flash-d-link-covr-x1860-a1.yml
-      ignore_errors: true
+    - name: Import flash-d-link-covr-x1860-a1.yml
+      ansible.builtin.import_playbook: flash-d-link-covr-x1860-a1.yml
 
-    - name: Run install-act.yml
-      ansible.builtin.include_tasks: install-act.yml
-      ignore_errors: true
+    - name: Import install-act.yml
+      ansible.builtin.import_playbook: install-act.yml
 
-    - name: Run install-gnu-radio.yml
-      ansible.builtin.include_tasks: install-gnu-radio.yml
-      ignore_errors: true
+    - name: Import install-gnu-radio.yml
+      ansible.builtin.import_playbook: install-gnu-radio.yml
 
-    - name: Run install-miniconda.yml
-      ansible.builtin.include_tasks: install-miniconda.yml
-      ignore_errors: true
+    - name: Import install-miniconda.yml
+      ansible.builtin.import_playbook: install-miniconda.yml
 
-    - name: Run install-network-tools.yml
-      ansible.builtin.include_tasks: install-network-tools.yml
-      ignore_errors: true
+    - name: Import install-network-tools.yml
+      ansible.builtin.import_playbook: install-network-tools.yml
 
-    - name: Run install-ocr-tools.yml
-      ansible.builtin.include_tasks: install-ocr-tools.yml
-      ignore_errors: true
+    - name: Import install-ocr-tools.yml
+      ansible.builtin.import_playbook: install-ocr-tools.yml
 
-    - name: Run install-wxsat-tools.yml
-      ansible.builtin.include_tasks: install-wxsat-tools.yml
-      ignore_errors: true
+    - name: Import install-wxsat-tools.yml
+      ansible.builtin.import_playbook: install-wxsat-tools.yml
 
-    - name: Run increase-swap-size.yml
-      ansible.builtin.include_tasks: increase-swap-size.yml
-      ignore_errors: true
+    - name: Import increase-swap-size.yml
+      ansible.builtin.import_playbook: increase-swap-size.yml
 
-    - name: Run setup-ai-laptop.yml
-      ansible.builtin.include_tasks: setup-ai-laptop.yml
-      ignore_errors: true
+    - name: Import setup-ai-laptop.yml
+      ansible.builtin.import_playbook: setup-ai-laptop.yml
 
-    - name: Run setup.yml
-      ansible.builtin.include_tasks: setup.yml
-      ignore_errors: true
+    - name: Import setup.yml
+      ansible.builtin.import_playbook: setup.yml
 
-    - name: Run install-vscode.yml
-      ansible.builtin.include_tasks: install-vscode.yml
-      ignore_errors: true
+    - name: Import install-vscode.yml
+      ansible.builtin.import_playbook: install-vscode.yml
