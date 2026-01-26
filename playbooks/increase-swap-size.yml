@@ -6,7 +6,7 @@
   vars:
     swap_path: "/swapfile"
     # Default swap_size, will be overridden if disk size is determined
-    swap_size: "4G"
+    swap_size: "16G"
 
   tasks:
     - name: Gather disk facts
