@@ -1,3 +1,4 @@
+- import_playbook: cleanup-syncthing.yml
 - import_playbook: install-apt-cacher-ng.yml
 - import_playbook: configure-apt-cacher-ng-client.yml
 - import_playbook: setup.yml

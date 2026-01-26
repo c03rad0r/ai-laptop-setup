@@ -1,0 +1,19 @@
+---
+- name: Clean up conflicting Syncthing configurations
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Remove conflicting Syncthing sources file
+      file:
+        path: /etc/apt/sources.list.d/syncthing.list
+        state: absent
+
+    - name: Remove conflicting Syncthing GPG key
+      file:
+        path: /etc/apt/keyrings/syncthing.gpg
+        state: absent
+
+    - name: Remove conflicting Syncthing GPG key
+      file:
+        path: /etc/apt/keyrings/syncthing-archive-keyring.gpg
+        state: absent

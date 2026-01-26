@@ -22,6 +22,11 @@
         path: /etc/apt/keyrings/syncthing.gpg
         state: absent
 
+    - name: Remove conflicting Syncthing GPG key
+      file:
+        path: /etc/apt/keyrings/syncthing-archive-keyring.gpg
+        state: absent
+
     - name: Ensure keyrings directory exists
       file:
         path: /etc/apt/keyrings
@@ -36,10 +41,10 @@
         force: true
 
     - name: Add Syncthing repository
-      apt_repository:
-        repo: "deb [signed-by=/etc/apt/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable"
-        state: present
-        filename: syncthing
+      copy:
+        content: "deb [signed-by=/etc/apt/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable"
+        dest: /etc/apt/sources.list.d/syncthing.list
+        mode: '0644'
 
     - name: Install Syncthing
       apt:

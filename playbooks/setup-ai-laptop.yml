@@ -31,38 +31,6 @@
         mode: '0755'
 
         
-    - name: Install dependencies for Syncthing
-      apt:
-        name:
-          - curl
-          - gnupg
-        state: present
-        
-    - name: Add Syncthing repository key
-      ansible.builtin.get_url:
-        url: https://syncthing.net/release-key.gpg
-        dest: /etc/apt/keyrings/syncthing.gpg
-        mode: '0644'
-        force: true
-        
-    - name: Add Syncthing repository
-      apt_repository:
-        repo: "deb [signed-by=/etc/apt/keyrings/syncthing.gpg] https://apt.syncthing.net/ syncthing stable"
-        state: present
-        filename: syncthing
-        
-    - name: Install Syncthing
-      apt:
-        name: syncthing
-        state: present
-        
-    - name: Create Syncthing service for user
-      systemd:
-        name: "syncthing@{{ user_name }}"
-        enabled: yes
-        state: started
-      ignore_errors: yes
-        
     - name: Install Emacs
       apt:
         name: emacs
