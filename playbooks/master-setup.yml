@@ -1,3 +1,4 @@
+- import_playbook: setup.yml
 - import_playbook: install-act.yml
 - import_playbook: install-gnu-radio.yml
 - import_playbook: install-miniconda.yml
@@ -6,5 +7,4 @@
 - import_playbook: install-wxsat-tools.yml
 - import_playbook: increase-swap-size.yml
 - import_playbook: setup-ai-laptop.yml
-- import_playbook: setup.yml
 - import_playbook: install-vscode.yml

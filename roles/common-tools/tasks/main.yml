@@ -43,23 +43,6 @@
 #    state: present
 #  when: ansible_os_family == "Debian"
 
-- name: Install Syncthing
-  apt:
-    name: syncthing
-    state: present
-  when: ansible_os_family == "Debian"
-
-- name: Create Syncthing service for user
-  template:
-    src: syncthing-user.service.j2
-    dest: "/etc/systemd/system/syncthing-{{ ansible_user }}.service"
-  when: ansible_os_family == "Debian"
-
-- name: Enable Syncthing service
-  systemd:
-    name: "syncthing-{{ ansible_user }}.service"
-    enabled: yes
-  when: ansible_os_family == "Debian"
 
 - name: Include Goose installation tasks
   include_tasks: goose.yml
