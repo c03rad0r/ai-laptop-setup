@@ -11,6 +11,8 @@
 
     # Cashu Configuration
     cashu_ln_backend: "FakeWallet" # Can be Lnbits, LND, CLN, or FakeWallet
+    # Public key for creating P2PK-locked vouchers (client-side operation)
+    cashu_voucher_pubkey: "YOUR_P2PK_PUBLIC_KEY" # IMPORTANT: Replace with your key
 
   tasks:
     # 1. VPS Preparation & Tooling
