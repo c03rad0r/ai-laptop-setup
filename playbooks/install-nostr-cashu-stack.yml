@@ -8,6 +8,7 @@
     relay_domain: "relay.yourdomain.com"
     bostr_domain: "bostr.yourdomain.com"
     gitea_domain: "gitea.yourdomain.com"
+    grasp_domain: "grasp.yourdomain.com"
     mint_domain: "mint.yourdomain.com"
     user_home: "{{ ansible_env.HOME }}"
 
@@ -18,6 +19,9 @@
 
     # Bostr Configuration
     bostr_port: 7777
+
+    # ngit-grasp Configuration
+    grasp_port: 7334
 
   tasks:
     # 1. VPS Preparation & Tooling
@@ -164,6 +168,43 @@
         state: started
       tags: ['cashu']
 
+    # 4.5. ngit-grasp Server
+    - name: Install ngit-grasp via install script
+      become: no # Run as the ansible user
+      shell: "curl -Ls https://ngit.dev/install.sh | bash"
+      args:
+        creates: "{{ user_home }}/.local/bin/ngit-grasp"
+      tags: ['grasp']
+
+    - name: Create ngit-grasp data directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ ansible_user | default(ansible_user_id) }}"
+        group: "{{ ansible_user | default(ansible_user_id) }}"
+        mode: '0755'
+      loop:
+        - /var/lib/ngit-grasp/git
+        - /var/lib/ngit-grasp/relay
+      tags: ['grasp']
+
+    - name: Create ngit-grasp systemd service file
+      template:
+        src: templates/ngit-grasp.service.j2
+        dest: /etc/systemd/system/ngit-grasp.service
+        owner: root
+        group: root
+        mode: '0644'
+      tags: ['grasp']
+
+    - name: Enable and start ngit-grasp service
+      systemd:
+        name: ngit-grasp
+        daemon_reload: yes
+        enabled: yes
+        state: started
+      tags: ['grasp']
+
     # 5. Caddy Reverse Proxy
     - name: Add Caddy GPG key
       apt_key:
@@ -192,6 +233,7 @@
         blossom_proxy: "localhost:3000"
         relay_proxy: "localhost:3334"
         bostr_proxy: "localhost:{{ bostr_port }}"
+        grasp_proxy: "localhost:{{ grasp_port }}"
         mint_proxy: "localhost:8085"
       tags: ['caddy']
 

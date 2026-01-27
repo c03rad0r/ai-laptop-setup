@@ -21,6 +21,7 @@ blossom_domain: "blossom.yourdomain.com"
 relay_domain: "relay.yourdomain.com"
 bostr_domain: "bostr.yourdomain.com"
 gitea_domain: "gitea.yourdomain.com"
+grasp_domain: "grasp.yourdomain.com"
 mint_domain: "mint.yourdomain.com"
 
 # -- (Optional) Cashu LNBits Backend --
@@ -40,6 +41,7 @@ Ensure the following DNS `A` or `AAAA` records are created:
 - `relay.yourdomain.com` -> `YOUR_VPS_IP_ADDRESS`
 - `bostr.yourdomain.com` -> `YOUR_VPS_IP_ADDRESS`
 - `gitea.yourdomain.com` -> `YOUR_VPS_IP_ADDRESS`
+- `grasp.yourdomain.com` -> `YOUR_VPS_IP_ADDRESS`
 - `mint.yourdomain.com` -> `YOUR_VPS_IP_ADDRESS`
 
 ## 3. Running the Playbook

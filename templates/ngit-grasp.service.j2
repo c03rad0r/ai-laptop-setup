@@ -1,0 +1,18 @@
+[Unit]
+Description=ngit-grasp GRASP Server
+After=network.target
+
+[Service]
+Type=simple
+User={{ ansible_user | default(ansible_user_id) }}
+ExecStart={{ user_home }}/.local/bin/ngit-grasp --domain {{ grasp_domain }} --bind-address 127.0.0.1:{{ grasp_port }}
+Restart=on-failure
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=ngit-grasp
+Environment="NGIT_GIT_DATA_PATH=/var/lib/ngit-grasp/git"
+Environment="NGIT_RELAY_DATA_PATH=/var/lib/ngit-grasp/relay"
+
+[Install]
+WantedBy=multi-user.target

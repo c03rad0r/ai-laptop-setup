@@ -25,6 +25,11 @@
     reverse_proxy localhost:3000
 }
 
+# ngit-grasp
+{{ grasp_domain }} {
+    reverse_proxy localhost:{{ grasp_port }}
+}
+
 # Cashu Mint
 {{ mint_domain }} {
     reverse_proxy {{ mint_proxy }}
