@@ -7,6 +7,7 @@
     blossom_domain: "blossom.yourdomain.com"
     relay_domain: "relay.yourdomain.com"
     bostr_domain: "bostr.yourdomain.com"
+    gitea_domain: "gitea.yourdomain.com"
     mint_domain: "mint.yourdomain.com"
     user_home: "{{ ansible_env.HOME }}"
 
@@ -210,3 +211,25 @@
         - "80"
         - "443"
       tags: ['caddy', 'firewall']
+
+- import_playbook: install-act.yml
+
+- name: Setup Gitea
+ hosts: all
+ become: yes
+ tasks:
+   - name: Create Gitea directory
+     file:
+       path: /opt/gitea
+       state: directory
+       mode: '0755'
+
+   - name: Create Gitea docker-compose.yml
+     template:
+       src: templates/gitea-docker-compose.yml.j2
+       dest: /opt/gitea/docker-compose.yml
+
+   - name: Start Gitea service
+     community.docker.docker_compose:
+       project_src: /opt/gitea
+       state: present

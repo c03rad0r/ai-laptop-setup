@@ -2,66 +2,56 @@
 
 This document outlines the necessary manual configuration steps required before running the `playbooks/install-nostr-cashu-stack.yml` Ansible playbook.
 
-## 1. DNS Configuration
+## 1. Create a Secrets File
 
-Before running the playbook, you must have valid DNS records pointing to your VPS for the domains you intend to use. Caddy requires this to successfully obtain SSL/TLS certificates.
+Instead of editing the playbook directly, it is best practice to store your secrets and user-specific variables in a separate file. Create a new file named `secrets.yml` and add the following content, replacing the placeholder values with your actual data. **Do not commit this file to version control.**
+
+```yaml
+# secrets.yml
+
+# -- Nostr & Domain Configuration --
+# Your Nostr public key (hex format) for Blossom uploads
+nostr_public_key: "YOUR_NOSTR_PUBLIC_KEY"
+
+# Your public key for creating P2PK-locked Cashu vouchers (client-side operation)
+cashu_voucher_pubkey: "YOUR_P2PK_PUBLIC_KEY"
+
+# Domains for your services
+blossom_domain: "blossom.yourdomain.com"
+relay_domain: "relay.yourdomain.com"
+bostr_domain: "bostr.yourdomain.com"
+gitea_domain: "gitea.yourdomain.com"
+mint_domain: "mint.yourdomain.com"
+
+# -- (Optional) Cashu LNBits Backend --
+# To use LNBits instead of the default FakeWallet, uncomment and configure these.
+# cashu_ln_backend: "Lnbits"
+# cashu_lnbits_api_url: "https://legend.lnbits.com"
+# cashu_lnbits_admin_key: "YOUR_LNBITS_ADMIN_KEY"
+```
+
+## 2. DNS Configuration
+
+Before running the playbook, you must have valid DNS records pointing to your VPS for the domains you defined in `secrets.yml`. Caddy requires this to successfully obtain SSL/TLS certificates.
 
 Ensure the following DNS `A` or `AAAA` records are created:
 
 - `blossom.yourdomain.com` -> `YOUR_VPS_IP_ADDRESS`
 - `relay.yourdomain.com` -> `YOUR_VPS_IP_ADDRESS`
 - `bostr.yourdomain.com` -> `YOUR_VPS_IP_ADDRESS`
+- `gitea.yourdomain.com` -> `YOUR_VPS_IP_ADDRESS`
 - `mint.yourdomain.com` -> `YOUR_VPS_IP_ADDRESS`
 
-## 2. Playbook Variables
+## 3. Running the Playbook
 
-Open the `playbooks/install-nostr-cashu-stack.yml` file and edit the `vars` section. You must replace the following placeholder values:
+When you execute the playbook, use the `--extra-vars` flag to pass your secrets file:
 
-- `nostr_public_key`: Your Nostr public key (in hex format). This authorizes you to upload media to the Blossom server.
-  ```yaml
-  nostr_public_key: "YOUR_NOSTR_PUBLIC_KEY"
-  ```
-
-- `blossom_domain`: The domain for your Blossom media server.
-  ```yaml
-  blossom_domain: "blossom.yourdomain.com"
-  ```
-
-- `relay_domain`: The domain for your Khatru Nostr relay.
-  ```yaml
-  relay_domain: "relay.yourdomain.com"
-  ```
-
-- `bostr_domain`: The domain for your bostr2 Nostr relay.
-  ```yaml
-  bostr_domain: "bostr.yourdomain.com"
-  ```
-
-- `mint_domain`: The domain for your Cashu mint.
-  ```yaml
-  mint_domain: "mint.yourdomain.com"
-  ```
-
-- `cashu_voucher_pubkey`: Your public key for creating P2PK-locked vouchers. This is a client-side operation, but the variable is here for documentation.
-  ```yaml
-  cashu_voucher_pubkey: "YOUR_P2PK_PUBLIC_KEY"
-  ```
-
-## 3. (Optional) Cashu Backend
-
-By default, the Cashu mint is configured to use `FakeWallet`, which is suitable for testing without real transactions. If you want to connect to a Lightning backend, you will need to modify the playbook.
-
-For example, to use LNBits, you would change the following variables in `playbooks/install-nostr-cashu-stack.yml`:
-
-```yaml
-cashu_ln_backend: "Lnbits"
+```bash
+ansible-playbook playbooks/install-nostr-cashu-stack.yml --extra-vars "@secrets.yml"
 ```
 
-And add the following to the `vars` section:
+This command tells Ansible to load all the variables from `secrets.yml`, keeping your main playbook clean and free of sensitive information.
 
-```yaml
-cashu_lnbits_api_url: "https://legend.lnbits.com" # Or your own instance
-cashu_lnbits_admin_key: "YOUR_LNBITS_ADMIN_KEY"
-```
+## 4. OpenMPTCProuter
 
-You would also need to update the `templates/cdk-mintd.service.j2` template to include the LNBits environment variables.
+There is a separate playbook, `playbooks/install-openmptcprouter.yml`, for installing OpenMPTCProuter. This playbook is **not** compatible with the Nostr & Cashu stack and should be run on a separate, dedicated VPS. It requires no manual configuration, but it will take over the server's networking and firewall.
