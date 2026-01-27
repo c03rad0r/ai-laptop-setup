@@ -6,6 +6,7 @@
     nostr_public_key: "YOUR_NOSTR_PUBLIC_KEY"
     blossom_domain: "blossom.yourdomain.com"
     relay_domain: "relay.yourdomain.com"
+    bostr_domain: "bostr.yourdomain.com"
     mint_domain: "mint.yourdomain.com"
     user_home: "{{ ansible_env.HOME }}"
 
@@ -13,6 +14,9 @@
     cashu_ln_backend: "FakeWallet" # Can be Lnbits, LND, CLN, or FakeWallet
     # Public key for creating P2PK-locked vouchers (client-side operation)
     cashu_voucher_pubkey: "YOUR_P2PK_PUBLIC_KEY" # IMPORTANT: Replace with your key
+
+    # Bostr Configuration
+    bostr_port: 7777
 
   tasks:
     # 1. VPS Preparation & Tooling
@@ -35,6 +39,7 @@
           - apt-transport-https
           - ca-certificates
           - gnupg
+          - golang-go
         state: present
       tags: ['system', 'prep']
 
@@ -99,6 +104,33 @@
         state: present
       tags: ['khatru']
 
+    # 3.5. Bostr Relay
+    - name: Install bostr2 via go
+      become: no # Run as the ansible user
+      command: "go install codeberg.org/Yonle/bostr2@latest"
+      args:
+        creates: "{{ user_home }}/go/bin/bostr2"
+      environment:
+        GOPATH: "{{ user_home }}/go"
+      tags: ['bostr']
+
+    - name: Create bostr2 systemd service file
+      template:
+        src: templates/bostr2.service.j2
+        dest: /etc/systemd/system/bostr2.service
+        owner: root
+        group: root
+        mode: '0644'
+      tags: ['bostr']
+
+    - name: Enable and start bostr2 service
+      systemd:
+        name: bostr2
+        daemon_reload: yes
+        enabled: yes
+        state: started
+      tags: ['bostr']
+
     # 4. Cashu Mint (cdk-mintd)
     - name: Install cdk-mintd via cargo
       command: "{{ user_home }}/.cargo/bin/cargo install cdk-mintd"
@@ -158,6 +190,7 @@
       vars:
         blossom_proxy: "localhost:3000"
         relay_proxy: "localhost:3334"
+        bostr_proxy: "localhost:{{ bostr_port }}"
         mint_proxy: "localhost:8085"
       tags: ['caddy']
 

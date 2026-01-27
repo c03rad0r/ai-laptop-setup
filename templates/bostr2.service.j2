@@ -1,0 +1,16 @@
+[Unit]
+Description=Bostr Relay
+After=network.target
+
+[Service]
+Type=simple
+User={{ ansible_user | default(ansible_user_id) }}
+ExecStart={{ user_home }}/go/bin/bostr2 -p {{ bostr_port }}
+Restart=on-failure
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=bostr2
+
+[Install]
+WantedBy=multi-user.target

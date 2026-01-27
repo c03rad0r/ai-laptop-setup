@@ -15,6 +15,11 @@
     reverse_proxy {{ relay_proxy }}
 }
 
+# Bostr Relay
+{{ bostr_domain }} {
+    reverse_proxy {{ bostr_proxy }}
+}
+
 # Cashu Mint
 {{ mint_domain }} {
     reverse_proxy {{ mint_proxy }}
