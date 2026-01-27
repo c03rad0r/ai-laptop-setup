@@ -1,0 +1,19 @@
+[Unit]
+Description=Cashu Mint (cdk-mintd)
+After=network.target
+
+[Service]
+Type=simple
+User={{ ansible_user | default(ansible_user_id) }}
+Environment="CDK_MINTD_LN_BACKEND={{ cashu_ln_backend | default('FakeWallet') }}"
+Environment="CDK_MINTD_DATABASE_PATH={{ user_home }}/.cdk-mintd/mint_fakewallet.sqlite"
+ExecStart={{ user_home }}/.cargo/bin/cdk-mintd
+WorkingDirectory={{ user_home }}/.cdk-mintd
+Restart=on-failure
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=cdk-mintd
+
+[Install]
+WantedBy=multi-user.target

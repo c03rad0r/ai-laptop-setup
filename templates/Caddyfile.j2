@@ -1,0 +1,21 @@
+# Caddyfile for Nostr and Cashu Stack
+
+{
+    # Automatic HTTPS for all sites
+    auto_https_except_localhost
+}
+
+# Blossom Media Server
+{{ blossom_domain }} {
+    reverse_proxy {{ blossom_proxy }}
+}
+
+# Khatru Nostr Relay
+{{ relay_domain }} {
+    reverse_proxy {{ relay_proxy }}
+}
+
+# Cashu Mint
+{{ mint_domain }} {
+    reverse_proxy {{ mint_proxy }}
+}

@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  blossom:
+    image: {{ blossom_image | default('ghcr.io/blossom-pm/blossom:latest') }}
+    container_name: blossom
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - AUTHORIZED_UPLOADERS={{ nostr_public_key }}
+    volumes:
+      - /opt/blossom/uploads:/app/uploads

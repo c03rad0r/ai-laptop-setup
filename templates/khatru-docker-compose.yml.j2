@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  khatru:
+    build:
+      context: ./khatru-pyramid
+    container_name: khatru
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3334:3334"
+    volumes:
+      # This is a simple example for a whitelist file.
+      # The actual implementation might require different volumes.
+      - ./khatru-pyramid/config.py:/app/config.py

@@ -9,6 +9,9 @@
     mint_domain: "mint.yourdomain.com"
     user_home: "{{ ansible_env.HOME }}"
 
+    # Cashu Configuration
+    cashu_ln_backend: "FakeWallet" # Can be Lnbits, LND, CLN, or FakeWallet
+
   tasks:
     # 1. VPS Preparation & Tooling
     - name: Update and upgrade apt packages
@@ -27,6 +30,9 @@
           - build-essential
           - curl
           - ufw
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
         state: present
       tags: ['system', 'prep']
 
@@ -56,22 +62,7 @@
       template:
         src: templates/blossom-docker-compose.yml.j2
         dest: /opt/blossom/docker-compose.yml
-      vars:
-        blossom_image: "blossom-v2:latest" # Or a specific version
       tags: ['blossom']
-      # Note: The template file needs to be created. It will contain:
-      # version: '3'
-      # services:
-      #   blossom:
-      #     image: {{ blossom_image }}
-      #     container_name: blossom
-      #     restart: unless-stopped
-      #     ports:
-      #       - "127.0.0.1:3000:3000"
-      #     environment:
-      #       - AUTHORIZED_UPLOADERS={{ nostr_public_key }}
-      #     volumes:
-      #       - ./uploads:/app/uploads
 
     - name: Start Blossom service
       community.docker.docker_compose:
@@ -93,8 +84,18 @@
         dest: /opt/khatru/khatru-pyramid
         version: master
       tags: ['khatru']
-      # Note: A more robust solution would be to build and run this,
-      # potentially in a container. For now, just cloning as per instructions.
+
+    - name: Create Khatru docker-compose.yml
+      template:
+        src: templates/khatru-docker-compose.yml.j2
+        dest: /opt/khatru/docker-compose.yml
+      tags: ['khatru']
+
+    - name: Start Khatru service
+      community.docker.docker_compose:
+        project_src: /opt/khatru
+        state: present
+      tags: ['khatru']
 
     # 4. Cashu Mint (cdk-mintd)
     - name: Install cdk-mintd via cargo
@@ -110,25 +111,42 @@
         mode: '0755'
       tags: ['cashu']
 
-    - name: Create cdk-mintd config.toml
-      copy:
-        dest: "{{ user_home }}/.cdk-mintd/config.toml"
-        content: |
-          # Replace with your actual Lightning backend configuration
-          [mint]
-          ln_backend = "FakeWallet" # Or Lnbits, LND, CLN
-          # [mint.lnbits]
-          # url = "https://legend.lnbits.com"
-          # api_key = "YOUR_LNBITS_API_KEY"
+
+    - name: Create cdk-mintd systemd service file
+      template:
+        src: templates/cdk-mintd.service.j2
+        dest: /etc/systemd/system/cdk-mintd.service
+        owner: root
+        group: root
+        mode: '0644'
+      tags: ['cashu']
+
+    - name: Enable and start cdk-mintd service
+      systemd:
+        name: cdk-mintd
+        daemon_reload: yes
+        enabled: yes
+        state: started
       tags: ['cashu']
 
     # 5. Caddy Reverse Proxy
+    - name: Add Caddy GPG key
+      apt_key:
+        url: "https://dl.cloudsmith.io/public/caddy/stable/gpg.key"
+        state: present
+      tags: ['caddy']
+
+    - name: Add Caddy repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main"
+        state: present
+      tags: ['caddy']
+
     - name: Install Caddy
       apt:
         name: caddy
         state: present
-      # This assumes Caddy is available in a configured repository.
-      # A more robust playbook would add the Caddy repository first.
+        update_cache: yes
       tags: ['caddy']
 
     - name: Create Caddyfile
@@ -137,10 +155,9 @@
         dest: /etc/caddy/Caddyfile
       vars:
         blossom_proxy: "localhost:3000"
-        relay_proxy: "localhost:3334" # Assuming this is the port for khatru
-        mint_proxy: "localhost:8085"  # Default cdk-mintd port
+        relay_proxy: "localhost:3334"
+        mint_proxy: "localhost:8085"
       tags: ['caddy']
-      # Note: The template file needs to be created.
 
     - name: Enable and start Caddy service
       systemd:
