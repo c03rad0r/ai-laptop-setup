@@ -1,0 +1,160 @@
+- name: Setup Sovereign Nostr and Cashu Stack
+  hosts: all
+  become: yes
+  vars:
+    # IMPORTANT: Replace with your actual domain and Nostr public key
+    nostr_public_key: "YOUR_NOSTR_PUBLIC_KEY"
+    blossom_domain: "blossom.yourdomain.com"
+    relay_domain: "relay.yourdomain.com"
+    mint_domain: "mint.yourdomain.com"
+    user_home: "{{ ansible_env.HOME }}"
+
+  tasks:
+    # 1. VPS Preparation & Tooling
+    - name: Update and upgrade apt packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+        autoremove: yes
+      tags: ['system', 'prep']
+
+    - name: Install required system packages
+      apt:
+        name:
+          - docker.io
+          - docker-compose
+          - git
+          - build-essential
+          - curl
+          - ufw
+        state: present
+      tags: ['system', 'prep']
+
+    - name: Check if Rust is installed
+      command: "{{ user_home }}/.cargo/bin/cargo --version"
+      register: rust_check
+      ignore_errors: yes
+      changed_when: false
+      tags: ['system', 'rust']
+
+    - name: Install Rust
+      when: rust_check.failed
+      shell: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+      args:
+        creates: "{{ user_home }}/.cargo/bin/rustc"
+      tags: ['system', 'rust']
+
+    # 2. Blossom Media Server (Nostr)
+    - name: Create Blossom directory
+      file:
+        path: /opt/blossom
+        state: directory
+        mode: '0755'
+      tags: ['blossom']
+
+    - name: Create Blossom docker-compose.yml
+      template:
+        src: templates/blossom-docker-compose.yml.j2
+        dest: /opt/blossom/docker-compose.yml
+      vars:
+        blossom_image: "blossom-v2:latest" # Or a specific version
+      tags: ['blossom']
+      # Note: The template file needs to be created. It will contain:
+      # version: '3'
+      # services:
+      #   blossom:
+      #     image: {{ blossom_image }}
+      #     container_name: blossom
+      #     restart: unless-stopped
+      #     ports:
+      #       - "127.0.0.1:3000:3000"
+      #     environment:
+      #       - AUTHORIZED_UPLOADERS={{ nostr_public_key }}
+      #     volumes:
+      #       - ./uploads:/app/uploads
+
+    - name: Start Blossom service
+      community.docker.docker_compose:
+        project_src: /opt/blossom
+        state: present
+      tags: ['blossom']
+
+    # 3. Khatru Nostr Relay
+    - name: Create Khatru directory
+      file:
+        path: /opt/khatru
+        state: directory
+        mode: '0755'
+      tags: ['khatru']
+
+    - name: Clone Khatru Pyramid repository
+      git:
+        repo: 'https://github.com/fiatjaf/khatru-pyramid.git'
+        dest: /opt/khatru/khatru-pyramid
+        version: master
+      tags: ['khatru']
+      # Note: A more robust solution would be to build and run this,
+      # potentially in a container. For now, just cloning as per instructions.
+
+    # 4. Cashu Mint (cdk-mintd)
+    - name: Install cdk-mintd via cargo
+      command: "{{ user_home }}/.cargo/bin/cargo install cdk-mintd"
+      args:
+        creates: "{{ user_home }}/.cargo/bin/cdk-mintd"
+      tags: ['cashu']
+
+    - name: Create cdk-mintd config directory
+      file:
+        path: "{{ user_home }}/.cdk-mintd"
+        state: directory
+        mode: '0755'
+      tags: ['cashu']
+
+    - name: Create cdk-mintd config.toml
+      copy:
+        dest: "{{ user_home }}/.cdk-mintd/config.toml"
+        content: |
+          # Replace with your actual Lightning backend configuration
+          [mint]
+          ln_backend = "FakeWallet" # Or Lnbits, LND, CLN
+          # [mint.lnbits]
+          # url = "https://legend.lnbits.com"
+          # api_key = "YOUR_LNBITS_API_KEY"
+      tags: ['cashu']
+
+    # 5. Caddy Reverse Proxy
+    - name: Install Caddy
+      apt:
+        name: caddy
+        state: present
+      # This assumes Caddy is available in a configured repository.
+      # A more robust playbook would add the Caddy repository first.
+      tags: ['caddy']
+
+    - name: Create Caddyfile
+      template:
+        src: templates/Caddyfile.j2
+        dest: /etc/caddy/Caddyfile
+      vars:
+        blossom_proxy: "localhost:3000"
+        relay_proxy: "localhost:3334" # Assuming this is the port for khatru
+        mint_proxy: "localhost:8085"  # Default cdk-mintd port
+      tags: ['caddy']
+      # Note: The template file needs to be created.
+
+    - name: Enable and start Caddy service
+      systemd:
+        name: caddy
+        enabled: yes
+        state: started
+      tags: ['caddy']
+
+    - name: Allow HTTP and HTTPS traffic through firewall
+      community.general.ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop:
+        - "80"
+        - "443"
+      tags: ['caddy', 'firewall']

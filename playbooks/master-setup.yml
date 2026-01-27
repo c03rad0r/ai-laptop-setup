@@ -7,6 +7,7 @@
 - import_playbook: install-gnu-radio.yml
 - import_playbook: install-miniconda.yml
 - import_playbook: install-network-tools.yml
+- import_playbook: install-netbird.yml
 - import_playbook: install-ocr-tools.yml
 - import_playbook: install-wxsat-tools.yml
 - import_playbook: increase-swap-size.yml

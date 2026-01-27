@@ -1,0 +1,9 @@
+---
+- name: Install Netbird
+  hosts: all
+  become: true
+  tasks:
+    - name: Install Netbird using the official script
+      ansible.builtin.shell: "curl -fsSL https://pkgs.netbird.io/install.sh | sh"
+      args:
+        creates: /usr/bin/netbird
