@@ -10,6 +10,16 @@
     test_env_path: "/tmp/test_env"
     
   tasks:
+    - name: Check for OpenMPTCProuter installation
+      stat:
+        path: /etc/shorewall/shorewall.conf
+      register: openmptcprouter_check
+
+    - name: Fail if OpenMPTCProuter is installed
+      fail:
+        msg: "OpenMPTCProuter is installed on this system, which is not compatible with this playbook."
+      when: openmptcprouter_check.stat.exists
+
     - name: Download Miniconda installer
       get_url:
         url: https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh

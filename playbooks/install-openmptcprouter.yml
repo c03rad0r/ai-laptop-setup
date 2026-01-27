@@ -1,0 +1,35 @@
+---
+- name: Install OpenMPTCProuter VPS
+  hosts: all
+  become: yes
+
+  pre_tasks:
+    - name: Check for conflicting services
+      stat:
+        path: "{{ item }}"
+      register: service_check
+      failed_when: service_check.stat.exists
+      loop:
+        - /etc/systemd/system/bostr2.service
+        - /etc/systemd/system/cdk-mintd.service
+        - /opt/blossom/docker-compose.yml
+        - /opt/khatru/docker-compose.yml
+      ignore_errors: yes # We want to check all items, not fail on the first one
+
+    - name: Fail if conflicting services are found
+      fail:
+        msg: "Conflicting services (bostr2, cdk-mintd, blossom, or khatru) are installed. Please use a clean VPS."
+      when: item.stat.exists
+      loop: "{{ service_check.results }}"
+
+  tasks:
+    - name: Download and run OpenMPTCProuter install script for Debian 10
+      shell: "wget -O - https://www.openmptcprouter.com/server/debian10-x86_64.sh | sh"
+      args:
+        warn: no # The script outputs a lot of text that can be flagged as a warning
+      register: install_script
+      changed_when: "'VPS reboot is required' in install_script.stdout"
+
+    - name: Reboot the server
+      reboot:
+      when: install_script.changed
