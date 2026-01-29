@@ -9,7 +9,6 @@
       copy:
         content: |
           Acquire::http::Proxy "{{ apt_proxy }}";
-          Acquire::https::Proxy "{{ apt_proxy }}";
         dest: /etc/apt/apt.conf.d/01proxy
 
     - name: Clean apt cache before update

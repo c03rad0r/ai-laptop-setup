@@ -9,6 +9,7 @@
           - gnuradio
           - uhd-host
           - rtl-sdr
+          - librtlsdr-dev
           - gr-osmosdr
           - soapysdr-module-all
           - gqrx-sdr
