@@ -20,14 +20,21 @@
         cmd: wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /usr/share/keyrings/vscode.gpg > /dev/null
         creates: /usr/share/keyrings/vscode.gpg
 
+
     - name: Enable the VS Code repository
       ansible.builtin.apt_repository:
         repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/vscode.gpg] https://packages.microsoft.com/repos/vscode stable main"
         state: present
         filename: vscode
+      environment:
+        http_proxy: ""
+        https_proxy: ""
 
     - name: Update the package index again and install Code
       ansible.builtin.apt:
         update_cache: yes
         name: code
         state: present
+      environment:
+        http_proxy: ""
+        https_proxy: ""
